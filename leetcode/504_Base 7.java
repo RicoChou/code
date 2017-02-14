@@ -43,7 +43,7 @@ public class Solution {
             chars[charPos--] = digits[num % 7];
             num /= 7;
         }
-        chars[charPos] = num;
+        chars[charPos] = digits[num];
         if (negative) {
             chars[--charPos] = '-';
         }
