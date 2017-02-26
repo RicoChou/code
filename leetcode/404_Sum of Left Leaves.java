@@ -44,6 +44,7 @@ public class Solution {
     }
 }
 
+// iteratively
 public class Solution {
 
     public int sumOfLeftLeaves(TreeNode root) {
