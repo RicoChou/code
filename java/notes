@@ -129,6 +129,10 @@ normaliztion 就是规范化处理，也就是把数据规范成为符合关系�
 他说公司用得最多的是sybase和oracle，但是其他数据库一般也会用到，比如非关系的mongodb还有mysql等。
 
 
+int randNumber = rand.nextInt(MAX - MIN + 1) + MIN;
+
+
+以生成[10,20]随机数为例，首先生成0-20的随机数，然后对(20-10+1)取模得到[0-10]之间的随机数，然后加上min=10，最后生成的是10-20的随机数
 
 HashSet
 HashSet有以下特点
