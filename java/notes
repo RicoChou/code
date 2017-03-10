@@ -180,8 +180,14 @@ obj1.compareTo(obj2)方法如果返回0，则说明被比较的两个对象相�
 
 
 保交所 保单质押系统
-        系统主要为用户提供质押保单获取贷款的服务。主要分为保单查询，保单冻结，保单质押，保单解冻，状态查询等几个模块。
+    ​系统主要为银行提供质押保单获取贷款的服务端接口。主要分为保单查询，保单冻结，保单质押，保单解冻，状态查询等几个模块。
 
-    系统框架采用SSM为基础的流行开源框架，使用Redis作为缓存以及提供自增主键，数据库采用MySQL，日志管理使用SLF4J+Log4J。业务接口开发完毕后，以生产者添加到Dubbo中，通过rest协议进行调用。
+    ​系统采用流行开源框架 Spring-MVC + Spring + Mybatis 为基础框架。使用 Redis 作为缓存以及提供自增主键，数据库采用 MySQL，并配合 Spring 提供的事务管理。消息队列采用 RocketMQ，使用 SLF4J + Log4J 配合 Spring AOP 进行日志管理。业务接口开发完毕后，以生产者添加到 Dubbo 服务中，再使用 Zookeeper 作为服务的注册中心，提供给统一接入平台通过 REST 协议进行调用。
+    ​项目使用 maven 进行项目构建，使用 git 进行版本控制，提交之后通过 Jenkins 打包应用发布到应用容器 Docker 中运行。
 
-    项目使用maven进行项目构建，使用git进行版本控制，提交之后通过Jenkins打包应用发布到应用容器Docker中运行。
+
+友邦保险AIA e-service系统
+    系统旨在为客户提供用户友好页面，使其通过页面进行保单查询、理赔等服务。
+
+    项目以 maven 进行构建，后端框架采用流行开源框架 Spring-MVC + Spring + Mybatis，使用Memcached作为缓存，日志管理采用 SLF4J+Log4J 配合 Spring AOP。数据管理使用 SQLServer 配合 Spring 提供的事务管理。
+    前后端以 JSON 格式数据进行交互，前端使用 Ajax 请求数据，经后台业务处理后，以 JSON 数据格式返回，然后使用 jQuery 进行数据绑定。
