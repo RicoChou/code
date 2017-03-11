@@ -127,3 +127,57 @@ normaliztion 就是规范化处理，也就是把数据规范成为符合关系�
 他问我还有什么问题。一般公司貌似都有这个环节，在面试结束后，会问你有什么想知道，这个情况，最好表示一下，自己对公司感兴趣。所以我问了一个问题，就是摩根IT一般用什么数据库。
 
 他说公司用得最多的是sybase和oracle，但是其他数据库一般也会用到，比如非关系的mongodb还有mysql等。
+
+
+
+HashSet
+HashSet有以下特点
+ 不能保证元素的排列顺序，顺序有可能发生变化
+ 不是同步的
+ 集合元素可以是null,但只能放入一个null
+当向HashSet集合中存入一个元素时，HashSet会调用该对象的hashCode()方法来得到该对象的hashCode值，然后根据hashCode值来决定该对象在HashSet中存储位置。
+**简单的说，HashSet集合判断两个元素相等的标准是两个对象通过equals方法比较相等，并且两个对象的hashCode()方法返回值相等**
+注意，如果要把一个对象放入HashSet中，重写该对象对应类的equals方法，也应该重写其hashCode()方法。其规则是如果两个对 象通过equals方法比较返回true时，其hashCode也应该相同。另外，对象中用作equals比较标准的属性，都应该用来计算 hashCode的值。
+
+TreeSet类
+TreeSet是SortedSet接口的唯一实现类，TreeSet可以确保集合元素处于排序状态。TreeSet支持两种排序方式，自然排序和定制排序，其中自然排序为默认的排序方式。向TreeSet中加入的应该是同一个类的对象。
+**TreeSet判断两个对象不相等的方式是两个对象通过equals方法返回false，或者通过CompareTo方法比较没有返回0**
+自然排序
+自然排序使用要排序元素的CompareTo（Object obj）方法来比较元素之间大小关系，然后将元素按照升序排列。
+Java提供了一个Comparable接口，该接口里定义了一个compareTo(Object obj)方法，该方法返回一个整数值，实现了该接口的对象就可以比较大小。
+obj1.compareTo(obj2)方法如果返回0，则说明被比较的两个对象相等，如果返回一个正数，则表明obj1大于obj2，如果是 负数，则表明obj1小于obj2。
+如果我们将两个对象的equals方法总是返回true，则这两个对象的compareTo方法返回应该返回0
+定制排序
+自然排序是根据集合元素的大小，以升序排列，如果要定制排序，应该使用Comparator接口，实现 int compare(T o1,T o2)方法。
+
+最重要：
+
+1、TreeSet 是二差树实现的,Treeset中的数据是自动排好序的，不允许放入null值。 
+
+2、HashSet 是哈希表实现的,HashSet中的数据是无序的，可以放入null，但只能放入一个null，两者中的值都不能重复，就如数据库中唯一约束。 
+
+3、HashSet要求放入的对象必须实现HashCode()方法，放入的对象，是以hashcode码作为标识的，而具有相同内容的 String对象，hashcode是一样，所以放入的内容不能重复。但是同一个类的对象可以放入不同的实例 。
+
+
+
+    熟练掌握JAVA面向对象编程语言，有良好的编码习惯，对JVM虚拟机有一定了解，理解Java垃圾回收机制
+    熟练掌握Spring, Spring-MVC, Mybatis开源框架技术，其中深入了解Spring框架，理解IOC控制反转的以及依赖注入的实现，AOP面向切面编程
+    了解MySQL中Innodb，MyISAM引擎以及基本的调优（加快sql的查询速度、数据库内存优化设置）
+    了解缓存框架redis
+    熟悉版本控制工具git的基本命令及使用，能使用Maven构建项目
+    熟悉Linux开发环境，熟悉基本命令
+    良好的数据结构和算法设计能力，熟悉设计模式
+    熟悉REST风格的网络接口开发
+    了解Internet基本协议（TCP/IP、HTTP）
+    了解Tomcat的使用以及调优
+    了解基本dubbo开发
+    熟悉JavaScript，熟练使用Jquery
+    了解Python，使用flask开发web应用
+
+
+保交所 保单质押系统
+        系统主要为用户提供质押保单获取贷款的服务。主要分为保单查询，保单冻结，保单质押，保单解冻，状态查询等几个模块。
+
+    系统框架采用SSM为基础的流行开源框架，使用Redis作为缓存以及提供自增主键，数据库采用MySQL，日志管理使用SLF4J+Log4J。业务接口开发完毕后，以生产者添加到Dubbo中，通过rest协议进行调用。
+
+    项目使用maven进行项目构建，使用git进行版本控制，提交之后通过Jenkins打包应用发布到应用容器Docker中运行。
