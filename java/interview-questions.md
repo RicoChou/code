@@ -80,19 +80,34 @@ upstream app1 {
 （2） 一个未捕获的异常终止了 run() 方法而使线程猝死。
 为了确定线程在当前是否存活着（就是要么是可运行的，要么是被阻塞了），需要使用 isAlive() 方法。如果是可运行或被阻塞，这个方法返回true；如果线程仍旧是 new 状态且不是可运行的， 或者线程死亡了，则返回 false。
 
-6. sleep和wait的区别
+##### 多线程6. sleep和wait的区别
+都用来进行线程控制,他们最大本质的区别是:sleep()不释放同步锁,wait()释放同步缩。
+  还有用法的上的不同是:sleep(milliseconds)可以用时间指定来使他自动醒过来,如果时间不到你只能调用interreput()来强行打断;wait()可以用notify()直接唤起.
+
+  sleep是Thread类的静态方法。sleep的作用是让线程休眠制定的时间，在时间到达时恢复，也就是说sleep将在接到时间到达事件事恢复线程执行，例如：
+
+
 7. hashmap的底层实现
 8. 一万个人抢100个红包，如何实现（不用队列），如何保证2个人不能抢到同一个红包，可用分布式锁
 9. java内存模型，垃圾回收机制，不可达算法
 10. 两个Integer的引用对象传给一个swap方法在方法内部交换引用，返回后，两个引用的值是否会发现变化
 
-
-
 11. aop的底层实现，动态代理是如何动态，假如有100个对象，如何动态的为这100个对象代理
 12. 是否用过maven install。 maven test。Git（make install是安装本地jar包）
 13. tomcat的各种配置，如何配置docBase
 14. spring的bean配置的几种方式
-15. web.xml的配置
+##### java15. web.xml的配置
+<servlet>
+    <servlet-name>servlet1</servlet-name>
+    <servlet-class>net.test.TestServlet</servlet-class>
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>servlet1</servlet-name>
+    <url-pattern>*.do</url-pattern>
+</servlet-mapping>
+
+
 16. spring的监听器。
 17. zookeeper的实现机制，有缓存，如何存储注册服务的
 18. IO会阻塞吗？readLine是不是阻塞的
@@ -109,18 +124,72 @@ upstream app1 {
 26. java的内存模型，垃圾回收机制
 27. 为什么线程执行要调用start而不是直接run（直接run，跟普通方法没什么区别，先调start，run才会作为一个线程方法运行）
 28. qmq消息的实现机制(qmq是去哪儿网自己封装的消息队列)
-29. 遍历hashmap的三种方式
+##### java29. 遍历hashmap的三种方式
+//第一种：普遍使用，二次取值
+System.out.println("通过Map.keySet遍历key和value：");
+for (String key : map.keySet()) {
+ System.out.println("key= "+ key + " and value= " + map.get(key));
+}
 
-30. jvm的一些命令
+//第二种
+System.out.println("通过Map.entrySet使用iterator遍历key和value：");
+Iterator<Map.Entry<String, String>> it = map.entrySet().iterator();
+while (it.hasNext()) {
+ Map.Entry<String, String> entry = it.next();
+ System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+}
+
+//第三种：推荐，尤其是容量大时
+System.out.println("通过Map.entrySet遍历key和value");
+for (Map.Entry<String, String> entry : map.entrySet()) {
+ System.out.println("key= " + entry.getKey() + " and value= " + entry.getValue());
+}
+
+//第四种
+System.out.println("通过Map.values()遍历所有的value，但不能遍历key");
+for (String v : map.values()) {
+ System.out.println("value= " + v);
+}
+}
+
+##### java30. jvm的一些命令
+http://blog.csdn.net/pistolove/article/details/52032501
 
 
+##### 其他31. memcache和redis的区别
+http://www.cnblogs.com/maweiba/p/6089664.html
+http://blog.csdn.net/buquan4041/article/details/52832552?fps=1&locationNum=5
 
-31. memcache和redis的区别
+##### sql32. MySQL的行级锁加在哪个位置
+InnoDB行锁是通过给索引上的索引项加锁来实现的
+INNODB的行级锁有共享锁（S LOCK）和排他锁（X LOCK）两种。共享锁允许事物读一行记录，不允许任何线程对该行记录进行修改。排他锁允许当前事物删除或更新一行记录，其他线程不能操作该记录。
 
-32. MySQL的行级锁加在哪个位置
-33. ConcurrentHashmap的锁是如何加的？是不是分段越多越好
+##### java33. ConcurrentHashmap的锁是如何加的？是不是分段越多越好
+通过分析Hashtable就知道，synchronized是针对整张Hash表的，即每次锁住整张表让线程独占，ConcurrentHashMap允许多个修改操作并发进行，其关键在于使用了锁分离技术。它使用了多个锁来控制对hash表的不同部分进行的修改。ConcurrentHashMap内部使用段(Segment)来表示这些不同的部分，每个段其实就是一个小的hash table，它们有自己的锁。只要多个修改操作发生在不同的段上，它们就可以并发进行。
+有些方法需要跨段，比如size()和containsValue()，它们可能需要锁定整个表而而不仅仅是某个段，这需要按顺序锁定所有段，操作完毕后，又按顺序释放所有段的锁。这里“按顺序”是很重要的，否则极有可能出现死锁，在ConcurrentHashMap内部，段数组是final的，并且其成员变量实际上也是final的，但是，仅仅是将数组声明为final的并不保证数组成员也是final的，这需要实现上的保证。这可以确保不会出现死锁，因为获得锁的顺序是固定的。http://www.cnblogs.com/ITtangtang/p/3948786.html ,,,,http://www.iteye.com/topic/344876
+
 34. myisam和innodb的区别（innodb是行级锁，myisam是表级锁）
-35. mysql其他的性能优化方式
+##### sql35. mysql其他的性能优化方式
+1、创建索引
+对于查询占主要的应用来说，索引显得尤为重要。很多时候性能问题很简单的就是因为我们忘了添加索引而造成的，或者说没有添加更为有效的索引导致。如果不加索引的话，那么查找任何哪怕只是一条特定的数据都会进行一次全表扫描，如果一张表的数据量很大而符合条件的结果又很少，那么不加索引会引起致命的性能下降。但是也不是什么情况都非得建索引不可，比如性别可能就只有两个值，建索引不仅没什么优势，还会影响到更新速度，这被称为过度索引。
+2、复合索引
+比如有一条语句是这样的：select * from users where area='beijing' and age=22;
+如果我们是在area和age上分别创建单个索引的话，由于mysql查询每次只能使用一个索引，所以虽然这样已经相对不做索引时全表扫描提高了很多效率，但是如果在area、age两列上创建复合索引的话将带来更高的效率。如果我们创建了(area, age, salary)的复合索引，那么其实相当于创建了(area,age,salary)、(area,age)、(area)三个索引，这被称为最佳左前缀特性。因此我们在创建复合索引时应该将最常用作限制条件的列放在最左边，依次递减。
+3、索引不会包含有NULL值的列
+只要列中包含有NULL值都将不会被包含在索引中，复合索引中只要有一列含有NULL值，那么这一列对于此复合索引就是无效的。所以我们在数据库设计时不要让字段的默认值为NULL。
+4、使用短索引
+对串列进行索引，如果可能应该指定一个前缀长度。例如，如果有一个CHAR(255)的 列，如果在前10 个或20 个字符内，多数值是惟一的，那么就不要对整个列进行索引。短索引不仅可以提高查询速度而且可以节省磁盘空间和I/O操作。
+5、排序的索引问题
+mysql查询只使用一个索引，因此如果where子句中已经使用了索引的话，那么order by中的列是不会使用索引的。因此数据库默认排序可以符合要求的情况下不要使用排序操作；尽量不要包含多个列的排序，如果需要最好给这些列创建复合索引。
+6、like语句操作
+一般情况下不鼓励使用like操作，如果非使用不可，如何使用也是一个问题。like “%aaa%” 不会使用索引而like “aaa%”可以使用索引。
+7、不要在列上进行运算
+select * from users where YEAR(adddate)<2007;
+将在每个行上进行运算，这将导致索引失效而进行全表扫描，因此我们可以改成
+select * from users where adddate<'2007-01-01';
+8、不使用NOT IN和<>操作
+NOT IN和 '<>' 操作都不会使用索引将进行全表扫描。NOT IN可以NOT EXISTS代替，id<>3则可使用id>3 or id<3来代替。
+
 
 36. Linux系统日志在哪里看
 
@@ -130,7 +199,8 @@ upstream app1 {
 
 39. jvm内存模型，java内存模型
 
-40. 如何把java内存的数据全部dump出来
+##### java40. 如何把java内存的数据全部dump出来
+jmap -dump:format=b,file=文件名 [pid]
 
 41. 如何手动触发全量回收垃圾，如何立即触发垃圾回收
 
@@ -145,11 +215,23 @@ upstream app1 {
 47. java线程池（好像之前我的理解有问题）
 48. mysql的binlog
 49. 代理模式
-50. mysql是如何实现事务的
+##### sql50. mysql是如何实现事务的
+【1】Redo Log
+在Innodb存储引擎中，事务日志是通过redo和innodb的存储引擎日志缓冲（Innodb log buffer）来实现的，当开始一个事务的时候，会记录该事务的lsn(log sequence number)号; 当事务执行时，会往InnoDB存储引擎的日志
+的日志缓存里面插入事务日志；当事务提交时，必须将存储引擎的日志缓冲写入磁盘（通过innodb_flush_log_at_trx_commit来控制），也就是写数据前，需要先写日志。这种方式称为“预写日志方式”，
+innodb通过此方式来保证事务的完整性。也就意味着磁盘上存储的数据页和内存缓冲池上面的页是不同步的，是先写入redo log，然后写入data file，因此是一种异步的方式。
+
+【2】Undo
+undo的记录正好与redo的相反，insert变成delete，update变成相反的update，redo放在redo file里面。而undo放在一个内部的一个特殊segment上面，存储与共享表空间内（ibdata1或者ibdata2中）。
+undo不是物理恢复，是逻辑恢复，因为它是通过执行相反的dml语句来实现的。而且不会回收因为insert和upate而新增加的page页的。
+undo页的回收是通过master thread线程来实现的。
 
 51. 读写分离何时强制要读主库，读哪个从库是通过什么方式决定的，从库的同步mysql用的什么方式
 52. mysql的存储引擎
-53. mysql的默认隔离级别，其他隔离级别
+##### sql53. mysql的默认隔离级别，其他隔离级别
+Repeatable Read 可重复读
+
+
 54. 将一个链表反转（用三个指针，但是每次只发转一个）
 55. spring Aop的实现原理，具体说说
 56. 何时会内存泄漏，内存泄漏会抛哪些异常
@@ -167,7 +249,21 @@ upstream app1 {
 65. 适配器和代理模式的区别
 66. 读写锁
 67. static加锁
-68. 事务隔离级别
+##### sql68. 事务隔离级别
+读未提交 Read-Uncommitted	0	导致脏读
+读已提交 Read-Committed	1	避免脏读，允许不可重复读和幻读
+可重复读 Repeatable-Read	2	避免脏读，不可重复读，允许幻读
+串行化   Serializable	3	串行化读，事务只能一个一个执行，避免了脏读、不可重复读、幻读。执行效率慢，使用时慎重
+脏读：一事务对数据进行了增删改，但未提交，另一事务可以读取到未提交的数据。如果第一个事务这时候回滚了，那么第二个事务就读到了脏数据。
+
+不可重复读：一个事务中发生了两次读操作，第一次读操作和第二次操作之间，另外一个事务对数据进行了修改，这时候两次读取的数据是不一致的。
+
+幻读：第一个事务对一定范围的数据进行批量修改，第二个事务在这个范围增加一条数据，这时候第一个事务就会丢失对新增数据的修改。
+原子性（Atomicity）：事务是一个原子操作单元，其对数据的修改，要么全部执行，要么全都不执行；
+一致性（Consistent）：在事务开始和完成时，数据都必须保持一致状态；
+隔离性（Isolation）：数据库系统提供一定的隔离机制，保证事务在不受外部并发操作影响的“独立”环境执行；
+持久性（Durable）：事务完成之后，它对于数据的修改是永久性的，即使出现系统故障也能够保持。
+
 69. 门面模式，类图(外观模式)
 70. mybatis如何映射表结构
 
@@ -181,7 +277,19 @@ upstream app1 {
 76. web的http请求如何整体响应时间变长导致处理的请求数变少，该如何处理？用队列，当处理不了那么多http请求时将请求放到队列
 中慢慢处理，web如何实现队列
 
-77. 线程安全的单例模式
+##### 多线程77. 线程安全的单例模式
+DCL加锁模式，私有静态类
+if (instance == null) {
+    sychronized (instance) {
+        if (instance == null)
+            instance = new Singleton();
+    }
+}
+
+/* 此处使用一个内部类来维护单例 */
+ private static class SingletonFactory {
+     private static Singleton instance = new Singleton();
+ }
 
 78. 快速排序性能考虑
 
@@ -190,25 +298,43 @@ upstream app1 {
 80. 求表的size，或做数据统计可用什么存储引擎
 
 
+##### sql81. 读多写少可用什么引擎
+MyISAM
 
-81. 读多写少可用什么引擎
 
 82. 假如要统计多个表应该用什么引擎
 
-83. concurrenhashmap求size是如何加锁的，如果刚求完一段后这段发生了变化该如何处理
+##### 多线程83. concurrenhashmap求size是如何加锁的，如果刚求完一段后这段发生了变化该如何处理
+http://www.cnblogs.com/ITtangtang/p/3948786.html
 
-84. 1000个苹果放10个篮子，怎么放，能让我拿到所有可能的个数
+##### 其他84. 1000个苹果放10个篮子，怎么放，能让我拿到所有可能的个数
+2^10 = 1024, 拿与不拿对应两种状态，恰好符合二进制，所以10个篮子放 1, 2, 4, 8 ... 512 - 24
 
-85. 可重入的读写锁，可重入是如何实现的？
 
-86. 是否用过NIO
+##### java85. 可重入的读写锁，可重入是如何实现的？
+ReentrantLock实现细节
+ReentrantLock支持两种获取锁的方式，一种是公平模型，一种是非公平模型
+http://blog.csdn.net/yanyan19880509/article/details/52345422
+可重入实现采用计数，重入加1，释放减1，计数为0时，释放锁，其他线程可获取锁进入代码块
+
+
+##### java86. 是否用过NIO
+http://blog.csdn.net/hxpjava1/article/details/56282385
 
 87. java的concurrent包用过没
 
-88. sting s=new string("abc")分别在堆栈上新建了哪些对象
+##### java88. sting s=new string("abc")分别在堆栈上新建了哪些对象
+两个(一个是"abc",一个是指向"abc"的引用对象s)其实不对
+两个，一个是字符串字面量"abc"所对应的、驻留（intern）在一个全局共享的字符串常量池中的实例，另一个是通过new String(String)创建并初始化的、内容与"abc"相同的实例
 
-89. java虚拟机的区域分配，各区分别存什么
+##### jvm89. java虚拟机的区域分配，各区分别存什么
 
+https://www.zhihu.com/question/29884421/answer/113785601
+https://pic4.zhimg.com/a5fb2f8f898ada8665b86fa0eb7038c3_b.jpg
+
+http://blog.csdn.net/u012481172/article/details/50936815
+Java中几种常量池的区分
+http://tangxman.github.io/2015/07/27/the-difference-of-java-string-pool/
 90. 分布式事务（JTA）
 
 91. threadlocal使用时注意的问题（ThreadLocal和Synchonized都用于解决多线程并发访问。但是ThreadLocal与synchronized有本质的区别。synchronized是利用锁的机制，使变量或代码块在某一时该只能被一个线程访问。而ThreadLocal为每一个线程都提供了变量的副本，使得每个线程在某一时间访问到的并不是同一个对象，这样就隔离了多个线程对数据的数据共享。而Synchronized却正好相反，它用于在多个线程间通信时能够获得数据共享）
@@ -216,15 +342,37 @@ upstream app1 {
 92. java有哪些容器(集合，tomcat也是一种容器)
 
 93. 二分查找算法
-94. myisam的优点，和innodb的区别
-95. redis能存哪些类型
+##### sql94. myisam的优点，和innodb的区别
+1)MyISAM类型不支持事务处理等高级处理，而InnoDB类型支持
+
+2)mysiam表不支持外键
+
+3)在执行数据库写入的操作（insert,update,delete）的时候，mysiam表会锁表，而innodb表会锁行
+
+4)当你的数据库有大量的写入、更新操作而查询比较少或者数据完整性要求比较高的时候就选择innodb表。当你的数据库主要以查询为主，相比较而言更新和写 入比较少，并且业务方面数据完整性要求不那么严格，就选择mysiam表。因为mysiam表的查询操作效率和速度都比innodb要快
+
+##### java95. redis能存哪些类型
+String、Hash、List、Set和Sorted Set
+
 96. http协议格式，get和post的区别
 97. 可重入锁中对应的wait和notify
 98. redis能把内存空间交换进磁盘中吗(这个应该是可以的，但是那个面试官非跟我说不可以)
 99. java线程池中基于缓存和基于定长的两种线程池，当请求太多时分别是如何处理的？定长的事用的队列，如果队列也满了呢？交换进磁盘？基于缓存的线程池解决方法呢？
-100. synchronized加在方法上用的什么锁
+##### 多线程100. synchronized加在方法上用的什么锁
+各种锁 http://blog.csdn.net/a314773862/article/details/54095819
+静态方法上是 类锁
+实例方法上是 对象锁
 
-101. 可重入锁中的lock和trylock的区别
+##### 多线程101. 可重入锁中的lock和trylock的区别
+作者：郭无心
+链接：https://www.zhihu.com/question/36771163/answer/68974735
+来源：知乎
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+1）lock(), 拿不到lock就不罢休，不然线程就一直block。 比较无赖的做法。
+2）tryLock()，马上返回，拿到lock就返回true，不然返回false。 比较潇洒的做法。    带时间限制的tryLock()，拿不到lock，就等一段时间，超时返回false。比较聪明的做法。
+3）lockInterruptibly()就稍微难理解一些。先说说线程的打扰机制，每个线程都有一个 打扰 标志。这里分两种情况，1. 线程在sleep或wait,join， 此时如果别的进程调用此进程的 interrupt（）方法，此线程会被唤醒并被要求处理InterruptedException；(thread在做IO操作时也可能有类似行为，见java thread api)2. 此线程在运行中， 则不会收到提醒。但是 此线程的 “打扰标志”会被设置， 可以通过isInterrupted()查看并 作出处理。lockInterruptibly()和上面的第一种情况是一样的， 线程在请求lock并被阻塞时，如果被interrupt，则“此线程会被唤醒并被要求处理InterruptedException”。并且如果线程已经被interrupt，再使用lockInterruptibly的时候，此线程也会被要求处理interruptedException
+
 102. innodb对一行数据的读会枷锁吗？不枷锁，读实际读的是副本
 103. redis做缓存是分布式存的？不同的服务器上存的数据是否重复？guava cache呢？是否重复？不同的机器存的数据不同
 104. 用awk统计一个ip文件中top10
@@ -244,7 +392,8 @@ upstream app1 {
 114. 类序列化时类的版本号的用途，如果没有指定一个版本号，系统是怎么处理的？如果加了字段会怎么样？
 115. Override和Overload的区别，分别用在什么场景
 116. java的反射是如何实现的
-
+117. spring 事务传播方式
+http://blog.csdn.net/maoxiao1229/article/details/7253992
 
 [DST_LOCK]: http://surlymo.iteye.com/blog/2082684 "分布式锁的三种实现方式"
 [ZOOKEEPER]: http://cailin.iteye.com/blog/2014486/ "zookeeper 原理"
