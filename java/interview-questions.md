@@ -180,7 +180,7 @@ INNODB的行级锁有共享锁（S LOCK）和排他锁（X LOCK）两种。共�
 4、使用短索引
 对串列进行索引，如果可能应该指定一个前缀长度。例如，如果有一个CHAR(255)的 列，如果在前10 个或20 个字符内，多数值是惟一的，那么就不要对整个列进行索引。短索引不仅可以提高查询速度而且可以节省磁盘空间和I/O操作。
 5、排序的索引问题
-mysql查询只使用一个索引，因此如果where子句中已经使用了索引的话，那么order by中的列是不会使用索引的。因此数据库默认排序可以符合要求的情况下不要使用排序操作；尽量不要包含多个列的排序，如果需要最好给这些列创建复合索引。
+查询只使用一个索引，因此如果where子句中已经使用了索引的话，那么order by中的列是不会使用索引的。因此数据库默认排序可以符合要求的情况下不要使用排序操作；尽量不要包含多个列的排序，如果需要最好给这些列创建复合索引。
 6、like语句操作
 一般情况下不鼓励使用like操作，如果非使用不可，如何使用也是一个问题。like “%aaa%” 不会使用索引而like “aaa%”可以使用索引。
 7、不要在列上进行运算
@@ -192,6 +192,7 @@ NOT IN和 '<>' 操作都不会使用索引将进行全表扫描。NOT IN可以NO
 
 
 36. Linux系统日志在哪里看
+/var/log/messages,user,auth
 
 37. 如何查看网络进程
 
@@ -237,13 +238,24 @@ Repeatable Read 可重复读
 56. 何时会内存泄漏，内存泄漏会抛哪些异常
 57. 是否用过Autowire注解
 58. spring的注入bean的方式
-59. sql语句各种条件的执行顺序，如select， where， order by， group by
+##### sql59. sql语句各种条件的执行顺序，如select， where， order by， group by
+from--where--group by--having--select--order by,
+1、from子句组装来自不同数据源的数据；
+　　2、where子句基于指定的条件对记录行进行筛选；
+　　3、group by子句将数据划分为多个分组；
+　　4、使用聚集函数进行计算；
+　　5、使用having子句筛选分组；
+　　6、计算所有的表达式；
+　　7、使用order by对结果集进行排序。
+
 60. select  xx from xx where xx and xx order by xx limit xx； 如何优化这个（看explain）
 
 61. 四则元算写代码
 
 62. 统计100G的ip文件中出现ip次数最多的100个ip
 63. zookeeper的事物，结点，服务提供方挂了如何告知消费方
+
+
 64. 5台服务器如何选出leader(选举算法)
 
 65. 适配器和代理模式的区别
@@ -306,6 +318,10 @@ MyISAM
 
 ##### 多线程83. concurrenhashmap求size是如何加锁的，如果刚求完一段后这段发生了变化该如何处理
 http://www.cnblogs.com/ITtangtang/p/3948786.html
+因为在累加count操作过程中，之前累加过的count发生变化的几率非常小，所以ConcurrentHashMap的做法是先尝试2次通过不锁住Segment的方式来统计各个Segment大小，如果统计的过程中，容器的count发生了变化，则再采用加锁的方式来统计所有Segment的大小。
+
+那么ConcurrentHashMap是如何判断在统计的时候容器是否发生了变化呢？使用modCount变量，在put , remove和clean方法里操作元素前都会将变量modCount进行加1，那么在统计size前后比较modCount是否发生变化，从而得知容器的大小是否发生变化。
+
 
 ##### 其他84. 1000个苹果放10个篮子，怎么放，能让我拿到所有可能的个数
 2^10 = 1024, 拿与不拿对应两种状态，恰好符合二进制，所以10个篮子放 1, 2, 4, 8 ... 512 - 24
@@ -320,6 +336,9 @@ http://blog.csdn.net/yanyan19880509/article/details/52345422
 
 ##### java86. 是否用过NIO
 http://blog.csdn.net/hxpjava1/article/details/56282385
+Channels and Buffers（通道和缓冲区）：标准的IO基于字节流和字符流进行操作的，而NIO是基于通道（Channel）和缓冲区（Buffer）进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。
+Asynchronous IO（异步IO）：Java NIO可以让你异步的使用IO，例如：当线程从通道读取数据到缓冲区时，线程还是可以进行其他事情。当数据被写入到缓冲区时，线程可以继续处理它。从缓冲区写入通道也类似。
+Selectors（选择器）：Java NIO引入了选择器的概念，选择器用于监听多个通道的事件（比如：连接打开，数据到达）。因此，单个的线程可以监听多个数据通道。
 
 87. java的concurrent包用过没
 
@@ -335,9 +354,34 @@ https://pic4.zhimg.com/a5fb2f8f898ada8665b86fa0eb7038c3_b.jpg
 http://blog.csdn.net/u012481172/article/details/50936815
 Java中几种常量池的区分
 http://tangxman.github.io/2015/07/27/the-difference-of-java-string-pool/
+
+1、局部变量表
+局部标量表 是一组变量值的存储空间，用于存放 方法参数 和 局部变量。在Class 文件的方法表的 Code 属性的 max_locals 指定了该方法所需局部变量表的最大容量。
+变量槽 （Variable Slot）是局部变量表的最小单位，没有强制规定大小为 32 位，虽然32位足够存放大部分类型的数据。一个 Slot 可以存放 boolean、byte、char、short、int、float、reference 和 returnAddress 8种类型。其中 reference 表示对一个对象实例的引用，通过它可以得到对象在Java 堆中存放的起始地址的索引和该数据所属数据类型在方法区的类型信息。returnAddress 则指向了一条字节码指令的地址。 对于64位的 long 和 double 变量而言，虚拟机会为其分配两个连续的 Slot 空间。
+
+2、操作数栈
+操作数栈（Operand Stack）也常称为操作栈，是一个后入先出栈。在Class 文件的Code 属性的 max_stacks 指定了执行过程中最大的栈深度。Java 虚拟机的解释执行引擎称为”基于栈的执行引擎“，这里的栈就是指操作数栈。
+方法执行中进行算术运算或者是调用其他的方法进行参数传递的时候是通过操作数栈进行的。
+在概念模型中，两个栈帧是相互独立的。但是大多数虚拟机的实现都会进行优化，令两个栈帧出现一部分重叠。令下面的部分操作数栈与上面的局部变量表重叠在一块，这样在方法调用的时候可以共用一部分数据，无需进行额外的参数复制传递。
+3、动态连接
+每个栈帧都包含一个执行运行时常量池中该栈帧所属方法的引用，持有这个引用是为了支持方法调用过程中的动态连接（Dynamic Linking）。
+Class 文件中存放了大量的符号引用，字节码中的方法调用指令就是以常量池中指向方法的符号引用作为参数。这些符号引用一部分会在类加载阶段或第一次使用时转化为直接引用，这种转化称为静态解析。另一部分将在每一次运行期间转化为直接引用，这部分称为动态连接。
+4、方法返回地址
+当一个方法开始执行以后，只有两种方法可以退出当前方法：
+当执行遇到返回指令，会将返回值传递给上层的方法调用者，这种退出的方式称为正常完成出口（Normal Method Invocation Completion），一般来说，调用者的PC计数器可以作为返回地址。
+当执行遇到异常，并且当前方法体内没有得到处理，就会导致方法退出，此时是没有返回值的，称为异常完成出口（Abrupt Method Invocation Completion），返回地址要通过异常处理器表来确定。
+当方法返回时，可能进行3个操作：
+恢复上层方法的局部变量表和操作数栈
+把返回值压入调用者调用者栈帧的操作数栈
+调整 PC 计数器的值以指向方法调用指令后面的一条指令
+5、附加信息
+虚拟机规范并没有规定具体虚拟机实现包含什么附加信息，这部分的内容完全取决于具体实现。在实际开发中，一般会把动态连接，方法返回地址和附加信息全部归为一类，称为栈帧信息。
+
+
 90. 分布式事务（JTA）
 
 91. threadlocal使用时注意的问题（ThreadLocal和Synchonized都用于解决多线程并发访问。但是ThreadLocal与synchronized有本质的区别。synchronized是利用锁的机制，使变量或代码块在某一时该只能被一个线程访问。而ThreadLocal为每一个线程都提供了变量的副本，使得每个线程在某一时间访问到的并不是同一个对象，这样就隔离了多个线程对数据的数据共享。而Synchronized却正好相反，它用于在多个线程间通信时能够获得数据共享）
+线程安全，线程
 
 92. java有哪些容器(集合，tomcat也是一种容器)
 
@@ -355,6 +399,9 @@ http://tangxman.github.io/2015/07/27/the-difference-of-java-string-pool/
 String、Hash、List、Set和Sorted Set
 
 96. http协议格式，get和post的区别
+请求行、消息报头、请求正文
+状态行、消息报头、响应正文
+
 97. 可重入锁中对应的wait和notify
 98. redis能把内存空间交换进磁盘中吗(这个应该是可以的，但是那个面试官非跟我说不可以)
 99. java线程池中基于缓存和基于定长的两种线程池，当请求太多时分别是如何处理的？定长的事用的队列，如果队列也满了呢？交换进磁盘？基于缓存的线程池解决方法呢？
@@ -390,9 +437,32 @@ String、Hash、List、Set和Sorted Set
 
 113. LinkedHashmap的底层实现
 114. 类序列化时类的版本号的用途，如果没有指定一个版本号，系统是怎么处理的？如果加了字段会怎么样？
+
+简单来说，Java的序列化机制是通过在运行时判断类的serialVersionUID来验证版本一致性的。在进行反序列化时，JVM会把传来的字节流中的serialVersionUID与本地相应实体（类）的serialVersionUID进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常。
+
+当实现java.io.Serializable接口的实体（类）没有显式地定义一个名为serialVersionUID，类型为long的变量时，Java序列化机制会根据编译的class自动生成一个serialVersionUID作序列化版本比较用，这种情况下，只有同一次编译生成的class才会生成相同的serialVersionUID 。
+
+如果我们不希望通过编译来强制划分软件版本，即实现序列化接口的实体能够兼容先前版本，未作更改的类，就需要显式地定义一个名为serialVersionUID，类型为long的变量，不修改这个变量值的序列化实体都可以相互进行串行化和反串行化
+
+
 115. Override和Overload的区别，分别用在什么场景
 116. java的反射是如何实现的
-117. spring 事务传播方式
+
+运行时类型识别(Run-time Type Identification, RTTI)主要有两种方式，一种是我们在编译时和运行时已经知道了所有的类型，另外一种是功能强大的“反射”机制。
+
+要理解RTTI在Java中的工作原理，首先必须知道类型信息在运行时是如何表示的，这项工作是由“Class对象”完成的，它包含了与类有关的信息。类是程序的重要组成部分，每个类都有一个Class对象，每当编写并编译了一个新类就会产生一个Class对象，它被保存在一个同名的.class文件中。在运行时，当我们想生成这个类的对象时，运行这个程序的Java虚拟机(JVM)会确认这个类的Class对象是否已经加载，如果尚未加载，JVM就会根据类名查找.class文件，并将其载入，一旦这个类的Class对象被载入内存，它就被用来创建这个类的所有对象。一般的RTTI形式包括三种：
+
+1.传统的类型转换。如“(Apple)Fruit”，由RTTI确保类型转换的正确性，如果执行了一个错误的类型转换，就会抛出一个ClassCastException异常。
+
+2.通过Class对象来获取对象的类型。如
+
+Class c = Class.forName(“Apple”);
+
+Object o = c.newInstance();
+
+3.通过关键字instanceof或Class.isInstance()方法来确定对象是否属于某个特定类型的实例，准确的说，应该是instanceof / Class.isInstance()可以用来确定对象是否属于某个特定类及其所有基类的实例，这和equals() / ==不一样，它们用来比较两个对象是否属于同一个类的实例，没有考虑继承关系。
+
+##### java117. spring 事务传播方式
 http://blog.csdn.net/maoxiao1229/article/details/7253992
 
 [DST_LOCK]: http://surlymo.iteye.com/blog/2082684 "分布式锁的三种实现方式"
