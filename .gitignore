@@ -6,7 +6,6 @@
 # Icon must end with two \r
 Icon
 
-
 # Thumbnails
 ._*
 
@@ -87,3 +86,4 @@ typings/
 .env
 
 # custom
+*/**/__pycache__
